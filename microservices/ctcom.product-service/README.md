@@ -18,17 +18,30 @@ This service is built using **.NET 8 Web API**, adhering to **SOLID principles**
 ## Technology Stack
 
 - **.NET 8 Web API**
+<<<<<<< HEAD
 - **Kafka / RabbitMQ** (for message/event handling)
 - **Dependency Injection**
 - **Docker** (for containerization)
 - **Polly** (for resilience and retry logic)
+=======
+- **Dependency Injection**
+- **Docker** (for containerization)
+- **Polly** (for resilience and retry logic)
+- **RabbitMQ** (for message/event handling)
+- **MassTransit** (for managing RabbitMQ)
+>>>>>>> 8e802ab069e14e02f0ba78c8ab628b427c825360
 
 ## Endpoints
 
 ### Base URL: `/api/products`
 
+<<<<<<< HEAD
 | HTTP Method | Endpoint     | Description                |
 | ----------- | ------------ | -------------------------- |
+=======
+| HTTP Method | Endpoint       | Description                |
+| ----------- | -------------- | -------------------------- |
+>>>>>>> 8e802ab069e14e02f0ba78c8ab628b427c825360
 | GET         | `/`          | Retrieve all products      |
 | GET         | `/{id:guid}` | Retrieve a product by ID   |
 | POST        | `/`          | Create a new product       |
@@ -47,3 +60,29 @@ This service is built using **.NET 8 Web API**, adhering to **SOLID principles**
   "stock": 100
 }
 ```
+<<<<<<< HEAD
+=======
+
+## structure
+
+ctcom.ProductService
+│
+├── Controllers
+│   └── ProductController.cs
+├── Models
+│   └── Product.cs
+├── Repositories
+│   └── IProductRepository.cs
+│   └── ProductRepository.cs
+├── Services
+│   └── IProductService.cs
+│   └── ProductService.cs
+├── Events
+│   └── ProductCreatedEvent.cs
+│   └── ProductUpdatedEvent.cs
+│   └── ProductDeletedEvent.cs
+├── Messaging
+│   └── IMessageProducer.cs
+│   └── KafkaMessageProducer.cs (or RabbitMQMessageProducer.cs)
+└── Program.cs
+>>>>>>> 8e802ab069e14e02f0ba78c8ab628b427c825360
