@@ -1,7 +1,6 @@
-using ctcom.ProductService.Events;
+using AutoMapper;
+using ctcom.ProductService.DTOs;
 using ctcom.ProductService.Repositories;
-using ctcom.ProductService.Messaging;
-using ctcom.ProductService.Services;
 using ctcom.ProductService.Models;
 
 namespace ctcom.ProductService.Services
@@ -9,43 +8,41 @@ namespace ctcom.ProductService.Services
     public class ProductService : IProductService
     {
         private readonly IProductRepository _productRepository;
-        private readonly IMessageProducer _messageProducer;
+        private readonly IMapper _mapper;
 
-        public ProductService(IProductRepository productRepository, IMessageProducer messageProducer)
+        public ProductService(IProductRepository productRepository, IMapper mapper)
         {
             _productRepository = productRepository;
-            _messageProducer = messageProducer;
+            _mapper = mapper;
         }
 
-        public async Task<IEnumerable<Product>> GetAllProductsAsync()
+        public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
         {
-            return await _productRepository.GetAllAsync();
+            var products = await _productRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<ProductDto>>(products);
         }
 
-        public async Task<Product?> GetProductByIdAsync(Guid id)
+        public async Task<ProductDto?> GetProductByIdAsync(Guid id)
         {
-            return await _productRepository.GetByIdAsync(id);
+            var product = await _productRepository.GetByIdAsync(id);
+            return product == null ? null : _mapper.Map<ProductDto>(product);
         }
 
-        public async Task CreateProductAsync(Product product)
+        public async Task CreateProductAsync(ProductDto productDto)
         {
+            var product = _mapper.Map<Product>(productDto);
             await _productRepository.AddAsync(product);
-            var productCreatedEvent = new ProductCreatedEvent(product.Id, product.Name, product.Price);
-            await _messageProducer.PublishAsync(productCreatedEvent);
         }
 
-        public async Task UpdateProductAsync(Product product)
+        public async Task UpdateProductAsync(ProductDto productDto)
         {
+            var product = _mapper.Map<Product>(productDto);
             await _productRepository.UpdateAsync(product);
-            var productUpdatedEvent = new ProductUpdatedEvent(product.Id, product.Name, product.Price);
-            await _messageProducer.PublishAsync(productUpdatedEvent);
         }
 
         public async Task DeleteProductAsync(Guid id)
         {
             await _productRepository.DeleteAsync(id);
-            var productDeletedEvent = new ProductDeletedEvent(id);
-            await _messageProducer.PublishAsync(productDeletedEvent);
         }
     }
 }
