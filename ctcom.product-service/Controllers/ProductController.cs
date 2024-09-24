@@ -63,8 +63,11 @@ namespace ctcom.ProductService.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteProduct(Guid id)
         {
-            await _productService.DeleteProductAsync(id);
-            return NoContent();
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
+                return NotFound();
+
+            return Ok(product);
         }
     }
 }
