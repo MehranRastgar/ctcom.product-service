@@ -10,6 +10,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using ctcom.ProductService.Mapping;
+using ctcom.ProductService.Messaging;
 
 namespace ctcom.ProductService.Tests
 {
@@ -18,20 +19,27 @@ namespace ctcom.ProductService.Tests
         private readonly ctcom.ProductService.Services.ProductService _productService;
         private readonly Mock<IProductRepository> _mockProductRepository;
         private readonly IMapper _mapper;
+        private readonly Mock<IMessageProducer> _mockMessageProducer;
 
         public ProductServiceTests()
         {
             // Mock the product repository
             _mockProductRepository = new Mock<IProductRepository>();
 
+            // Mock the message producer
+            _mockMessageProducer = new Mock<IMessageProducer>();
+
             // Set up AutoMapper with the ProductMappingProfile
             var config = new MapperConfiguration(cfg => cfg.AddProfile(new ProductMappingProfile()));
             _mapper = config.CreateMapper();
 
-            // Initialize the product service with the mocked repository and mapper
-            _productService = new ctcom.ProductService.Services.ProductService(_mockProductRepository.Object, _mapper);
+            // Initialize the product service with the mocked repository, mapper, and message producer
+            _productService = new ctcom.ProductService.Services.ProductService(
+                _mockProductRepository.Object,
+                _mapper,
+                _mockMessageProducer.Object
+            );
         }
-
         [Fact]
         public async Task GetAllProducts_ReturnsProductDtos()
         {
@@ -70,14 +78,24 @@ namespace ctcom.ProductService.Tests
         public async Task CreateProduct_AddsProduct()
         {
             // Arrange
-            var productDto = new ProductDto { Title = "New Product", Description = "New Description" };
+            var productDto = new ProductDto
+            {
+                Title = "New Product",
+                Description = "New Description"
+            };
 
             // Act
             await _productService.CreateProductAsync(productDto);
 
             // Assert
-            _mockProductRepository.Verify(repo => repo.AddAsync(It.IsAny<Product>()), Times.Once);
+            _mockProductRepository.Verify(repo => repo.AddAsync(It.Is<Product>(
+                p => p.Title == "New Product"
+                     && p.Description == "New Description"
+                     && p.CreatedAt != default(DateTime) // Ensure CreatedAt is set
+                     && p.UpdatedAt != default(DateTime) // Ensure UpdatedAt is set
+            )), Times.Once);
         }
+
 
         [Fact]
         public async Task DeleteProduct_RemovesProduct()
@@ -91,5 +109,6 @@ namespace ctcom.ProductService.Tests
             // Assert
             _mockProductRepository.Verify(repo => repo.DeleteAsync(productId), Times.Once);
         }
+
     }
 }
