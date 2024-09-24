@@ -6,6 +6,10 @@ using ctcom.ProductService.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using ctcom.ProductService.DTOs.Validation;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -21,6 +25,10 @@ builder.Services.AddDbContext<ProductDbContext>(options =>
         );
     })
 );
+
+// Add FluentValidation and validators
+builder.Services.AddControllers().AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<ProductDtoValidator>());
+
 
 // Add AutoMapper
 builder.Services.AddAutoMapper(typeof(ProductMappingProfile));

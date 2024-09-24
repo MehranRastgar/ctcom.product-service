@@ -35,6 +35,11 @@ namespace ctcom.ProductService.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateProduct([FromBody] ProductDto productDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             await _productService.CreateProductAsync(productDto);
             return CreatedAtAction(nameof(GetProductById), new { id = productDto.Id }, productDto);
         }
@@ -42,8 +47,14 @@ namespace ctcom.ProductService.Controllers
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] ProductDto productDto)
         {
+
             if (id != productDto.Id)
                 return BadRequest();
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
             await _productService.UpdateProductAsync(productDto);
             return NoContent();
