@@ -1,14 +1,14 @@
+using System;
+
 namespace ctcom.ProductService.Events
 {
     public class ProductDeletedEvent
     {
-        public Guid ProductId { get; }
-
+        public Guid Id { get; set; }
 
         public ProductDeletedEvent(Guid productId)
         {
-            ProductId = productId;
-
+            Id = productId;
         }
     }
 }

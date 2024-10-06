@@ -16,12 +16,20 @@ namespace ctcom.ProductService.Repositories
 
         public async Task<IEnumerable<Product>> GetAllAsync()
         {
-            return await _dbContext.Products.ToListAsync();
+            return await _dbContext.Products
+                        .Include(p => p.Variants)
+                        .Include(p => p.Options)
+                        .Include(p => p.Images)
+                        .ToListAsync();
         }
 
         public async Task<Product?> GetByIdAsync(Guid id)
         {
-            return await _dbContext.Products.FirstOrDefaultAsync(p => p.Id == id);
+            return await _dbContext.Products
+                      .Include(p => p.Variants)
+                      .Include(p => p.Options)
+                      .Include(p => p.Images)
+                      .FirstOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task AddAsync(Product product)

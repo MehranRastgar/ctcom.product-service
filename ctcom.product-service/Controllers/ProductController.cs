@@ -1,6 +1,6 @@
-using ctcom.ProductService.Models;
-using ctcom.ProductService.Services;
 using Microsoft.AspNetCore.Mvc;
+using ctcom.ProductService.Services;
+using ctcom.ProductService.DTOs;
 
 namespace ctcom.ProductService.Controllers
 {
@@ -33,27 +33,41 @@ namespace ctcom.ProductService.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateProduct([FromBody] Product product)
+        public async Task<IActionResult> CreateProduct([FromBody] ProductDto productDto)
         {
-            await _productService.CreateProductAsync(product);
-            return CreatedAtAction(nameof(GetProductById), new { id = product.Id }, product);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _productService.CreateProductAsync(productDto);
+            return CreatedAtAction(nameof(GetProductById), new { id = productDto.Id }, productDto);
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] Product product)
+        public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] ProductDto productDto)
         {
-            if (id != product.Id)
+
+            if (id != productDto.Id)
                 return BadRequest();
 
-            await _productService.UpdateProductAsync(product);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            await _productService.UpdateProductAsync(productDto);
             return NoContent();
         }
 
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> DeleteProduct(Guid id)
         {
-            await _productService.DeleteProductAsync(id);
-            return NoContent();
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
+                return NotFound();
+
+            return Ok(product);
         }
     }
 }

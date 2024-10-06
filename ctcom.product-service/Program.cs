@@ -1,9 +1,14 @@
 using ctcom.ProductService.Data;
+using ctcom.ProductService.Mapping;
 using ctcom.ProductService.Messaging;
 using ctcom.ProductService.Repositories;
 using ctcom.ProductService.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using ctcom.ProductService.DTOs.Validation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +16,23 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure the database (replace with your connection string)
 var connectionString = builder.Configuration.GetConnectionString("ProductDatabase");
 builder.Services.AddDbContext<ProductDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,               // Maximum number of retries
+            maxRetryDelay: TimeSpan.FromSeconds(30),  // Maximum delay between retries
+            errorNumbersToAdd: null          // List of error numbers to retry on (optional)
+        );
+    })
+);
+
+// Add FluentValidation and validators
+builder.Services.AddControllers().AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<ProductDtoValidator>());
+
+
+// Add AutoMapper
+builder.Services.AddAutoMapper(typeof(ProductMappingProfile));
+
 
 // Add services
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
