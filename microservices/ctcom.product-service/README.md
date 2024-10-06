@@ -51,23 +51,25 @@ This service is built using **.NET 8 Web API**, adhering to **SOLID principles**
 
 ## structure
 
+```
 ctcom.ProductService
 │
 ├── Controllers
-│   └── ProductController.cs
+│ └── ProductController.cs
 ├── Models
-│   └── Product.cs
+│ └── Product.cs
 ├── Repositories
-│   └── IProductRepository.cs
-│   └── ProductRepository.cs
+│ └── IProductRepository.cs
+│ └── ProductRepository.cs
 ├── Services
-│   └── IProductService.cs
-│   └── ProductService.cs
+│ └── IProductService.cs
+│ └── ProductService.cs
 ├── Events
-│   └── ProductCreatedEvent.cs
-│   └── ProductUpdatedEvent.cs
-│   └── ProductDeletedEvent.cs
+│ └── ProductCreatedEvent.cs
+│ └── ProductUpdatedEvent.cs
+│ └── ProductDeletedEvent.cs
 ├── Messaging
-│   └── IMessageProducer.cs
-│   └── KafkaMessageProducer.cs (or RabbitMQMessageProducer.cs)
+│ └── IMessageProducer.cs
+│ └── KafkaMessageProducer.cs (or RabbitMQMessageProducer.cs)
 └── Program.cs
+```
