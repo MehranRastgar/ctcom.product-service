@@ -38,11 +38,6 @@ namespace ctcom.ProductService.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task UpdateAsync(Product product)
-        {
-            _dbContext.Products.Update(product);
-            await _dbContext.SaveChangesAsync();
-        }
 
         public async Task DeleteAsync(Guid id)
         {
@@ -53,5 +48,27 @@ namespace ctcom.ProductService.Repositories
                 await _dbContext.SaveChangesAsync();
             }
         }
+
+        // public async Task UpdateAsync(Product product)
+        // {
+        //     _dbContext.Products.Update(product);
+        //     await _dbContext.SaveChangesAsync();
+        // }
+        public async Task UpdateAsync(Product product)
+        {
+            _dbContext.Products.Update(product);
+
+            // Save any changes to the related images
+            foreach (var image in product.Images)
+            {
+                if (_dbContext.Entry(image).State == EntityState.Detached)
+                {
+                    _dbContext.ProductImages.Add(image);
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+        }
+
     }
 }

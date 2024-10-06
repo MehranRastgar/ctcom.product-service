@@ -10,5 +10,6 @@ namespace ctcom.ProductService.Services
         Task CreateProductAsync(ProductDto product);
         Task UpdateProductAsync(ProductDto product);
         Task DeleteProductAsync(Guid id);
+        Task<List<string>> UploadProductImagesAsync(Guid productId, List<IFormFile> files);
     }
 }

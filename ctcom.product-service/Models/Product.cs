@@ -34,18 +34,6 @@ namespace ctcom.ProductService.Models
         public ICollection<ProductOptionValue> OptionValues { get; set; } = new List<ProductOptionValue>(); // Variant's options (e.g., Red, Large)
     }
 
-    // Represents possible product options (e.g., Size, Color)
-    public class ProductOption
-    {
-        public Guid Id { get; set; } = Guid.NewGuid();
-        public string Title { get; set; } = string.Empty;            // Option title (e.g., Size, Color)
-        public Guid ProductId { get; set; }                          // Reference to the parent product
-
-        // Relationships
-        public Product Product { get; set; }                         // The parent product
-        public ICollection<ProductOptionValue> OptionValues { get; set; } = new List<ProductOptionValue>(); // Possible values for the option
-    }
-
     // Represents the values for a product option (e.g., Red, Large)
     public class ProductOptionValue
     {
@@ -56,16 +44,26 @@ namespace ctcom.ProductService.Models
         // Relationships
         public ProductOption ProductOption { get; set; }             // The parent option (e.g., Size, Color)
     }
+    public class ProductOption
+    {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string Title { get; set; } = string.Empty;
+
+        public Guid ProductId { get; set; } // Foreign key to Product
+        public Product Product { get; set; } // Navigation property
+    }
 
     // Represents product images
     public class ProductImage
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public string Url { get; set; } = string.Empty;              // URL of the image
-        public string AltText { get; set; } = string.Empty;          // Alternative text for the image
-        public Guid ProductId { get; set; }                          // Reference to the parent product
+        public string Url { get; set; }
+        public string AltText { get; set; } = string.Empty;
 
-        // Relationships
-        public Product Product { get; set; }                         // The parent product
+        public Guid ProductId { get; set; } // Foreign key to Product
+        public Product Product { get; set; } // Navigation property
     }
+
+
+
 }

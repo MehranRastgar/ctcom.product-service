@@ -20,6 +20,20 @@ namespace ctcom.ProductService.Services
             _messageProducer = messageProducer;
 
         }
+        
+        private bool IsImage(IFormFile file)
+        {
+            // List of allowed image file extensions
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            return allowedExtensions.Contains(extension);
+        }
+        
+        private bool IsValidFileSize(IFormFile file, long maxSizeInBytes)
+        {
+            return file.Length <= maxSizeInBytes;
+        }
 
         public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
         {
@@ -65,6 +79,46 @@ namespace ctcom.ProductService.Services
             // Publish ProductDeletedEvent
             var productDeletedEvent = new ProductDeletedEvent(id);
             await _messageProducer.PublishAsync(productDeletedEvent);
+        }
+
+        public async Task<List<string>> UploadProductImagesAsync(Guid productId, List<IFormFile> files)
+        {
+            var product = await _productRepository.GetByIdAsync(productId);
+            if (product == null)
+                throw new InvalidOperationException("Product not found");
+
+            var imageUrls = new List<string>();
+
+            foreach (var file in files)
+            {
+                // Validate and store each file
+                if (IsImage(file) && IsValidFileSize(file, 5 * 1024 * 1024)) // 5MB limit
+                {
+                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                    var filePath = Path.Combine("wwwroot", "uploads", "products", productId.ToString(), fileName);
+                    Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    var relativeUrl = $"/uploads/products/{productId}/{fileName}";
+                    imageUrls.Add(relativeUrl);
+
+                    // Add image record to the product entity
+                    product.Images.Add(new ProductImage
+                    {
+                        Url = relativeUrl,
+                        AltText = Path.GetFileNameWithoutExtension(fileName)
+                    });
+                }
+            }
+
+            // Update the product to save associated images
+            await _productRepository.UpdateAsync(product);
+
+            return imageUrls;
         }
     }
 }

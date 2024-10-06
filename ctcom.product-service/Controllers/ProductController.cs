@@ -69,5 +69,25 @@ namespace ctcom.ProductService.Controllers
 
             return Ok(product);
         }
+
+        [HttpPost("{id:guid}/upload-images")]
+        public async Task<IActionResult> UploadProductImages(Guid id, [FromForm] List<IFormFile> files)
+        {
+            // Validate if the product exists
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
+                return NotFound("Product not found.");
+
+            // Validate if any files are uploaded
+            if (files == null || files.Count == 0)
+                return BadRequest("No files uploaded.");
+
+            // Upload each image and associate it with the product
+            var imageUrls = await _productService.UploadProductImagesAsync(id, files);
+
+            // Return the URLs of the uploaded images
+            return Ok(new { ImageUrls = imageUrls });
+        }
+
     }
 }
