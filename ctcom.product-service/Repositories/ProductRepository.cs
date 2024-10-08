@@ -1,7 +1,11 @@
+using ctcom.ProductService.Data;
 using ctcom.ProductService.Models;
 using Microsoft.EntityFrameworkCore;
-using ctcom.ProductService.Data;
-using ctcom.ProductService.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ctcom.ProductService.Repositories
 {
@@ -14,51 +18,51 @@ namespace ctcom.ProductService.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync()
+        public async Task<(IEnumerable<Product>, int totalRecords)> GetProductsAsync(int page, int pageSize, string? filter, CancellationToken cancellationToken)
         {
-            return await _dbContext.Products
-                        .Include(p => p.Variants)
-                        .Include(p => p.Options)
-                        .Include(p => p.Images)
-                        .ToListAsync();
-        }
+            var query = _dbContext.Products
+                                  .Include(p => p.Variants)
+                                  .Include(p => p.Options)
+                                  .Include(p => p.Images)
+                                  .AsQueryable();
 
-        public async Task<Product?> GetByIdAsync(Guid id)
-        {
-            return await _dbContext.Products
-                      .Include(p => p.Variants)
-                      .Include(p => p.Options)
-                      .Include(p => p.Images)
-                      .FirstOrDefaultAsync(p => p.Id == id);
-        }
-
-        public async Task AddAsync(Product product)
-        {
-            await _dbContext.Products.AddAsync(product);
-            await _dbContext.SaveChangesAsync();
-        }
-
-
-        public async Task DeleteAsync(Guid id)
-        {
-            var product = await _dbContext.Products.FindAsync(id);
-            if (product != null)
+            if (!string.IsNullOrEmpty(filter))
             {
-                _dbContext.Products.Remove(product);
-                await _dbContext.SaveChangesAsync();
+                query = query.Where(p => p.Title.Contains(filter));
             }
+
+            var totalRecords = await query.CountAsync(cancellationToken);
+
+            var products = await query
+                .OrderBy(p => p.Title)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return (products, totalRecords);
         }
 
-        // public async Task UpdateAsync(Product product)
-        // {
-        //     _dbContext.Products.Update(product);
-        //     await _dbContext.SaveChangesAsync();
-        // }
-        public async Task UpdateAsync(Product product)
+        public async Task<Product?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+        {
+            return await _dbContext.Products
+                .Include(p => p.Variants)
+                .Include(p => p.Options)
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+        }
+
+        public async Task<Guid> AddAsync(Product product, CancellationToken cancellationToken)
+        {
+            await _dbContext.Products.AddAsync(product, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            return product.Id;
+
+        }
+
+        public async Task UpdateAsync(Product product, CancellationToken cancellationToken)
         {
             _dbContext.Products.Update(product);
 
-            // Save any changes to the related images
             foreach (var image in product.Images)
             {
                 if (_dbContext.Entry(image).State == EntityState.Detached)
@@ -67,38 +71,17 @@ namespace ctcom.ProductService.Repositories
                 }
             }
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        // Method for fetching paginated and filtered products
-        public async Task<(IEnumerable<Product>, int)> GetProductsAsync(int page, int pageSize, string? filter)
+        public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
         {
-            // Build the base query
-            var query = _dbContext.Products
-                                  .Include(p => p.Variants)
-                                  .Include(p => p.Options)
-                                  .Include(p => p.Images)
-                                  .AsQueryable();
-
-            // Apply filtering based on title or other fields as needed
-            if (!string.IsNullOrEmpty(filter))
+            var product = await _dbContext.Products.FindAsync(new object[] { id }, cancellationToken);
+            if (product != null)
             {
-                query = query.Where(p => p.Title.Contains(filter));
+                _dbContext.Products.Remove(product);
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }
-
-            // Get the total count before applying pagination
-            var totalRecords = await query.CountAsync();
-
-            // Apply pagination (Skip and Take)
-            var products = await query
-                .OrderBy(p => p.Title) // Optional: Specify ordering (e.g., by Title)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            // Return the products along with total count for pagination
-            return (products, totalRecords);
         }
-
     }
 }

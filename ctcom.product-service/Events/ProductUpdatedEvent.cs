@@ -1,34 +1,66 @@
 using System;
 using System.Collections.Generic;
 using ctcom.ProductService.DTOs;
+using ctcom.ProductService.Models;
 
 namespace ctcom.ProductService.Events
 {
     public class ProductUpdatedEvent
     {
-        public Guid Id { get; set; }
+        public Guid ProductId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        public string Handle { get; set; }
         public bool IsPublished { get; set; }
         public DateTime UpdatedAt { get; set; }
         public DateTime? PublishedAt { get; set; }
 
-        // Include the associated DTOs for variants, options, and images
-        public ICollection<ProductVariantDto> Variants { get; set; }
-        public ICollection<ProductOptionDto> Options { get; set; }
-        public ICollection<ProductImageDto> Images { get; set; }
+        public List<ProductVariantDto> Variants { get; set; } = new();
+        public List<ProductOptionDto> Options { get; set; } = new();
+        public List<ProductImageDto> Images { get; set; } = new();
 
-        public ProductUpdatedEvent(ProductDto product)
+        public ProductUpdatedEvent(Product product)
         {
-            Id = product.Id;
+            ProductId = product.Id;
             Title = product.Title;
             Description = product.Description;
+            Handle = product.Handle;
             IsPublished = product.IsPublished;
             UpdatedAt = product.UpdatedAt;
             PublishedAt = product.PublishedAt;
-            Variants = product.Variants;
-            Options = product.Options;
-            Images = product.Images;
+
+            Variants = new List<ProductVariantDto>();
+            foreach (var variant in product.Variants)
+            {
+                Variants.Add(new ProductVariantDto
+                {
+                    Id = variant.Id,
+                    Title = variant.Title,
+                    Price = variant.Price,
+                    StockQuantity = variant.StockQuantity
+                });
+            }
+
+            Options = new List<ProductOptionDto>();
+            foreach (var option in product.Options)
+            {
+                Options.Add(new ProductOptionDto
+                {
+                    Id = option.Id,
+                    Title = option.Title
+                });
+            }
+
+            Images = new List<ProductImageDto>();
+            foreach (var image in product.Images)
+            {
+                Images.Add(new ProductImageDto
+                {
+                    Id = image.Id,
+                    Url = image.Url,
+                    AltText = image.AltText
+                });
+            }
         }
     }
 }

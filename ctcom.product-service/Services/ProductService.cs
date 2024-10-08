@@ -4,6 +4,10 @@ using ctcom.ProductService.Repositories;
 using ctcom.ProductService.Models;
 using ctcom.ProductService.Events;
 using ctcom.ProductService.Messaging;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ctcom.ProductService.Services
 {
@@ -18,72 +22,64 @@ namespace ctcom.ProductService.Services
             _productRepository = productRepository;
             _mapper = mapper;
             _messageProducer = messageProducer;
-
         }
 
-        private bool IsImage(IFormFile file)
+        public async Task<(IEnumerable<GetProductListDto> products, int totalRecords)> GetProductsAsync(int page, int pageSize, string? filter, CancellationToken cancellationToken)
         {
-            // List of allowed image file extensions
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-
-            return allowedExtensions.Contains(extension);
+            var (products, totalRecords) = await _productRepository.GetProductsAsync(page, pageSize, filter, cancellationToken);
+            var productDtos = _mapper.Map<IEnumerable<GetProductListDto>>(products);
+            return (productDtos, totalRecords);
         }
 
-        private bool IsValidFileSize(IFormFile file, long maxSizeInBytes)
+        public async Task<GetProductDto?> GetProductByIdAsync(Guid id, CancellationToken cancellationToken)
         {
-            return file.Length <= maxSizeInBytes;
+            var product = await _productRepository.GetByIdAsync(id, cancellationToken);
+            return product == null ? null : _mapper.Map<GetProductDto>(product);
         }
 
-        public async Task<IEnumerable<ProductDto>> GetAllProductsAsync()
-        {
-            var products = await _productRepository.GetAllAsync();
-            return _mapper.Map<IEnumerable<ProductDto>>(products);
-        }
+        // public async Task CreateProductAsync(CreateProductDto productDto, CancellationToken cancellationToken)
+        // {
+        //     var product = _mapper.Map<Product>(productDto);
+        //     await _productRepository.AddAsync(product, cancellationToken);
 
-        public async Task<ProductDto?> GetProductByIdAsync(Guid id)
+        //     var productCreatedEvent = new ProductCreatedEvent(product);
+        //     await _messageProducer.PublishAsync(productCreatedEvent);
+        // }
+        public async Task<Guid> CreateProductAsync(CreateProductDto productDto, CancellationToken cancellationToken)
         {
-            var product = await _productRepository.GetByIdAsync(id);
-            return product == null ? null : _mapper.Map<ProductDto>(product);
-        }
-
-        public async Task CreateProductAsync(ProductDto productDto)
-        {
-            productDto.CreatedAt = DateTime.UtcNow; // Set the CreatedAt timestamp
-            productDto.UpdatedAt = DateTime.UtcNow; // Set the UpdatedAt timestamp
-
             var product = _mapper.Map<Product>(productDto);
-            await _productRepository.AddAsync(product);
+            product.CreatedAt = DateTime.UtcNow;
+            product.UpdatedAt = DateTime.UtcNow;
 
-            // Publish ProductCreatedEvent
-            var productCreatedEvent = new ProductCreatedEvent(productDto);
+            // Call the repository and return the generated Id
+            var createdProductId = await _productRepository.AddAsync(product, cancellationToken);
+            var productCreatedEvent = new ProductCreatedEvent(product);
             await _messageProducer.PublishAsync(productCreatedEvent);
+
+            // Optionally publish an event for product creation here if needed
+            return createdProductId;  // Return the Id to the controller
         }
 
-        public async Task UpdateProductAsync(ProductDto productDto)
+        public async Task UpdateProductAsync(UpdateProductDto productDto, CancellationToken cancellationToken)
         {
-            productDto.UpdatedAt = DateTime.UtcNow; // Update the UpdatedAt timestamp
-
             var product = _mapper.Map<Product>(productDto);
-            await _productRepository.UpdateAsync(product);
+            await _productRepository.UpdateAsync(product, cancellationToken);
 
-            // Publish ProductUpdatedEvent
-            var productUpdatedEvent = new ProductUpdatedEvent(productDto);
+            var productUpdatedEvent = new ProductUpdatedEvent(product);
             await _messageProducer.PublishAsync(productUpdatedEvent);
         }
 
-        public async Task DeleteProductAsync(Guid id)
+        public async Task DeleteProductAsync(Guid id, CancellationToken cancellationToken)
         {
-            await _productRepository.DeleteAsync(id);
+            await _productRepository.DeleteAsync(id, cancellationToken);
 
-            // Publish ProductDeletedEvent
             var productDeletedEvent = new ProductDeletedEvent(id);
             await _messageProducer.PublishAsync(productDeletedEvent);
         }
 
-        public async Task<List<string>> UploadProductImagesAsync(Guid productId, List<IFormFile> files)
+        public async Task<List<string>> UploadProductImagesAsync(Guid productId, List<IFormFile> files, CancellationToken cancellationToken)
         {
-            var product = await _productRepository.GetByIdAsync(productId);
+            var product = await _productRepository.GetByIdAsync(productId, cancellationToken);
             if (product == null)
                 throw new InvalidOperationException("Product not found");
 
@@ -91,8 +87,7 @@ namespace ctcom.ProductService.Services
 
             foreach (var file in files)
             {
-                // Validate and store each file
-                if (IsImage(file) && IsValidFileSize(file, 5 * 1024 * 1024)) // 5MB limit
+                if (IsImage(file) && IsValidFileSize(file, 5 * 1024 * 1024))
                 {
                     var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                     var filePath = Path.Combine("wwwroot", "uploads", "products", productId.ToString(), fileName);
@@ -100,13 +95,12 @@ namespace ctcom.ProductService.Services
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
-                        await file.CopyToAsync(stream);
+                        await file.CopyToAsync(stream, cancellationToken);
                     }
 
                     var relativeUrl = $"/uploads/products/{productId}/{fileName}";
                     imageUrls.Add(relativeUrl);
 
-                    // Add image record to the product entity
                     product.Images.Add(new ProductImage
                     {
                         Url = relativeUrl,
@@ -115,22 +109,21 @@ namespace ctcom.ProductService.Services
                 }
             }
 
-            // Update the product to save associated images
-            await _productRepository.UpdateAsync(product);
+            await _productRepository.UpdateAsync(product, cancellationToken);
 
             return imageUrls;
         }
 
-        public async Task<(IEnumerable<ProductDto>, int)> GetProductsAsync(int page, int pageSize, string? filter)
+        private bool IsImage(IFormFile file)
         {
-            // Call repository to fetch paginated and filtered products
-            var (products, totalRecords) = await _productRepository.GetProductsAsync(page, pageSize, filter);
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            return allowedExtensions.Contains(extension);
+        }
 
-            // Map products to DTOs
-            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
-
-            // Return the products with the total count for pagination
-            return (productDtos, totalRecords);
+        private bool IsValidFileSize(IFormFile file, long maxSizeInBytes)
+        {
+            return file.Length <= maxSizeInBytes;
         }
     }
 }

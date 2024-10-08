@@ -4,11 +4,11 @@ namespace ctcom.ProductService.Events
 {
     public class ProductDeletedEvent
     {
-        public Guid Id { get; set; }
+        public Guid ProductId { get; set; }
 
         public ProductDeletedEvent(Guid productId)
         {
-            Id = productId;
+            ProductId = productId;
         }
     }
 }
