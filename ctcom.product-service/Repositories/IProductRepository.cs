@@ -9,5 +9,6 @@ namespace ctcom.ProductService.Repositories
         Task AddAsync(Product product);
         Task UpdateAsync(Product product);
         Task DeleteAsync(Guid id);
+        Task<(IEnumerable<Product>, int)> GetProductsAsync(int page, int pageSize, string? filter);
     }
 }

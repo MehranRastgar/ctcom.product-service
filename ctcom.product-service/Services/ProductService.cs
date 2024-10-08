@@ -20,7 +20,7 @@ namespace ctcom.ProductService.Services
             _messageProducer = messageProducer;
 
         }
-        
+
         private bool IsImage(IFormFile file)
         {
             // List of allowed image file extensions
@@ -29,7 +29,7 @@ namespace ctcom.ProductService.Services
 
             return allowedExtensions.Contains(extension);
         }
-        
+
         private bool IsValidFileSize(IFormFile file, long maxSizeInBytes)
         {
             return file.Length <= maxSizeInBytes;
@@ -119,6 +119,18 @@ namespace ctcom.ProductService.Services
             await _productRepository.UpdateAsync(product);
 
             return imageUrls;
+        }
+
+        public async Task<(IEnumerable<ProductDto>, int)> GetProductsAsync(int page, int pageSize, string? filter)
+        {
+            // Call repository to fetch paginated and filtered products
+            var (products, totalRecords) = await _productRepository.GetProductsAsync(page, pageSize, filter);
+
+            // Map products to DTOs
+            var productDtos = _mapper.Map<IEnumerable<ProductDto>>(products);
+
+            // Return the products with the total count for pagination
+            return (productDtos, totalRecords);
         }
     }
 }

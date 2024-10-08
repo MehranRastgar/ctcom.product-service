@@ -15,11 +15,26 @@ namespace ctcom.ProductService.Controllers
             _productService = productService;
         }
 
+        // [HttpGet]
+        // public async Task<IActionResult> GetAllProducts()
+        // {
+        //     var products = await _productService.GetAllProductsAsync();
+        //     return Ok(products);
+        // }
+
         [HttpGet]
-        public async Task<IActionResult> GetAllProducts()
+        public async Task<IActionResult> GetProducts([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? filter = null)
         {
-            var products = await _productService.GetAllProductsAsync();
-            return Ok(products);
+            var (products, totalRecords) = await _productService.GetProductsAsync(page, pageSize, filter);
+
+            // Return paginated and filtered data
+            return Ok(new
+            {
+                data = products,
+                total = totalRecords,
+                page,
+                pageSize
+            });
         }
 
         [HttpGet("{id:guid}")]

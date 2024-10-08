@@ -50,7 +50,16 @@ builder.Services.AddMassTransit(x =>
         });
     });
 });
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", builder =>
+    {
+        builder.WithOrigins(["http://localhost:3000"]) // origins
+             .AllowAnyMethod()
+             .AllowAnyHeader()
+             .AllowCredentials();
+    });
+});
 // Register the RabbitMessageProducer
 builder.Services.AddScoped<IMessageProducer, RabbitMessageProducer>();
 
@@ -69,6 +78,7 @@ if (app.Environment.IsDevelopment())
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
+    app.UseCors("CorsPolicy");
 }
 
 app.UseHttpsRedirection();

@@ -11,5 +11,6 @@ namespace ctcom.ProductService.Services
         Task UpdateProductAsync(ProductDto product);
         Task DeleteProductAsync(Guid id);
         Task<List<string>> UploadProductImagesAsync(Guid productId, List<IFormFile> files);
+        Task<(IEnumerable<ProductDto>, int)> GetProductsAsync(int page, int pageSize, string? filter);
     }
 }

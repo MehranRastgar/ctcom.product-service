@@ -70,5 +70,35 @@ namespace ctcom.ProductService.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
+        // Method for fetching paginated and filtered products
+        public async Task<(IEnumerable<Product>, int)> GetProductsAsync(int page, int pageSize, string? filter)
+        {
+            // Build the base query
+            var query = _dbContext.Products
+                                  .Include(p => p.Variants)
+                                  .Include(p => p.Options)
+                                  .Include(p => p.Images)
+                                  .AsQueryable();
+
+            // Apply filtering based on title or other fields as needed
+            if (!string.IsNullOrEmpty(filter))
+            {
+                query = query.Where(p => p.Title.Contains(filter));
+            }
+
+            // Get the total count before applying pagination
+            var totalRecords = await query.CountAsync();
+
+            // Apply pagination (Skip and Take)
+            var products = await query
+                .OrderBy(p => p.Title) // Optional: Specify ordering (e.g., by Title)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Return the products along with total count for pagination
+            return (products, totalRecords);
+        }
+
     }
 }
