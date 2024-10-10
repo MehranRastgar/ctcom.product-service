@@ -40,6 +40,25 @@ namespace ctcom.ProductService.Mapping
             CreateMap<Product, DeleteProductDto>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
 
+            CreateMap<CreateProductDto, Product>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore());
+
+
+            CreateMap<Product, CreatedProductDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.Handle, opt => opt.MapFrom(src => src.Handle))
+            .ForMember(dest => dest.IsPublished, opt => opt.MapFrom(src => src.IsPublished))
+            .ForMember(dest => dest.PublishedAt, opt => opt.MapFrom(src => src.PublishedAt))
+            .ForMember(dest => dest.Variants, opt => opt.MapFrom(src => src.Variants))
+            .ForMember(dest => dest.Options, opt => opt.MapFrom(src => src.Options))
+            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images));
+
+
+
+            CreateMap<Product, CreatedProductDto>().ReverseMap();
+            CreateMap<CreateProductDto, Product>().ReverseMap();
             // Mapping for Product Variants
             CreateMap<ProductVariant, ProductVariantDto>().ReverseMap();
             CreateMap<ProductVariant, CreateProductVariantDto>().ReverseMap();

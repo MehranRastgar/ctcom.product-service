@@ -1,5 +1,9 @@
 namespace ctcom.ProductService.DTOs
 {
+    public class CreatedProductDto : CreateProductDto
+    {
+        public Guid Id { get; set; }
+    }
     public class CreateProductDto
     {
         public string Title { get; set; } = string.Empty;    // Main product title

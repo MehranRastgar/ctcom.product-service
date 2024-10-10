@@ -45,20 +45,77 @@ namespace ctcom.ProductService.Services
         //     var productCreatedEvent = new ProductCreatedEvent(product);
         //     await _messageProducer.PublishAsync(productCreatedEvent);
         // }
-        public async Task<Guid> CreateProductAsync(CreateProductDto productDto, CancellationToken cancellationToken)
+        // public async Task<CreatedProductDto> CreateProductAsync(CreateProductDto productDto, CancellationToken cancellationToken)
+        // {
+        //     var product = _mapper.Map<Product>(productDto);
+        //     product.CreatedAt = DateTime.UtcNow;
+        //     product.UpdatedAt = DateTime.UtcNow;
+
+        //     // Call the repository and return the generated Id
+        //     Guid createdProductId = await _productRepository.AddAsync(product, cancellationToken);
+        //     product.Id = createdProductId;
+        //     var createdProductDto = _mapper.Map<CreatedProductDto>(product);
+        //     return createdProductDto;
+        // }
+        public async Task<CreatedProductDto> CreateProductAsync(CreateProductDto productDto, CancellationToken cancellationToken)
         {
+            // Log to ensure the method was called with valid data
+            Console.WriteLine("Service Layer: CreateProductAsync called");
+
+            if (productDto == null)
+            {
+                Console.WriteLine("Error: productDto is null");
+                throw new ArgumentNullException(nameof(productDto), "productDto is null");
+            }
+
+            // Log the productDto properties
+            Console.WriteLine($"productDto: Title={productDto.Title}, Description={productDto.Description}");
+
+            // Map DTO to Product model
             var product = _mapper.Map<Product>(productDto);
-            product.CreatedAt = DateTime.UtcNow;
-            product.UpdatedAt = DateTime.UtcNow;
 
-            // Call the repository and return the generated Id
-            var createdProductId = await _productRepository.AddAsync(product, cancellationToken);
-            var productCreatedEvent = new ProductCreatedEvent(product);
-            await _messageProducer.PublishAsync(productCreatedEvent);
+            // Ensure the mapping was successful
+            if (product == null)
+            {
+                Console.WriteLine("Error: Mapping from CreateProductDto to Product failed");
+                throw new Exception("Mapping failed: CreateProductDto to Product");
+            }
 
-            // Optionally publish an event for product creation here if needed
-            return createdProductId;  // Return the Id to the controller
+            // Log the mapped product details
+            Console.WriteLine($"Mapped Product: Title={product.Title}, Description={product.Description}");
+
+            // Attempt to save the product to the database
+            try
+            {
+                var createdProductId = await _productRepository.AddAsync(product, cancellationToken);
+
+                if (createdProductId == Guid.Empty)
+                {
+                    Console.WriteLine("Error: Failed to generate product ID");
+                    throw new Exception("Product creation failed: No ID generated");
+                }
+
+                Console.WriteLine($"Product created successfully with ID: {createdProductId}");
+
+                // Map the created product back to DTO
+                var createdProductDto = _mapper.Map<CreatedProductDto>(product);
+
+                if (createdProductDto == null)
+                {
+                    Console.WriteLine("Error: Mapping from Product to CreatedProductDto failed");
+                    throw new Exception("Mapping failed: Product to CreatedProductDto");
+                }
+
+                createdProductDto.Id = createdProductId;
+                return createdProductDto;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during product creation: {ex.Message}");
+                throw;
+            }
         }
+
 
         public async Task UpdateProductAsync(UpdateProductDto productDto, CancellationToken cancellationToken)
         {

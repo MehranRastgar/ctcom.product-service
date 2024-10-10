@@ -10,7 +10,7 @@ namespace ctcom.ProductService.Services
     {
         Task<(IEnumerable<GetProductListDto> products, int totalRecords)> GetProductsAsync(int page, int pageSize, string? filter, CancellationToken cancellationToken);
         Task<GetProductDto?> GetProductByIdAsync(Guid id, CancellationToken cancellationToken);
-        Task<Guid> CreateProductAsync(CreateProductDto productDto, CancellationToken cancellationToken);
+        Task<CreatedProductDto> CreateProductAsync(CreateProductDto productDto, CancellationToken cancellationToken);
         Task UpdateProductAsync(UpdateProductDto productDto, CancellationToken cancellationToken);
         Task DeleteProductAsync(Guid id, CancellationToken cancellationToken);
         Task<List<string>> UploadProductImagesAsync(Guid productId, List<IFormFile> files, CancellationToken cancellationToken);

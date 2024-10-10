@@ -38,21 +38,50 @@ namespace ctcom.ProductService.Controllers
             return Ok(product);
         }
 
+
+
         // POST /api/Product
         [HttpPost]
         public async Task<IActionResult> CreateProduct([FromBody] CreateProductDto productDto, CancellationToken cancellationToken)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(ModelState);
+
+                if (productDto == null)
+                {
+                    Console.WriteLine("productDto is null.");
+                    return BadRequest("Invalid product data.");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                Console.WriteLine("Before calling _productService.CreateProductAsync");
+                if (_productService == null)
+                {
+                    throw new Exception("Product service is not initialized.");
+                }
+                var createdProductDto = await _productService.CreateProductAsync(productDto, cancellationToken);
+
+                if (createdProductDto == null)
+                {
+                    Console.WriteLine("createdProductDto is null.");
+                    return StatusCode(500, "Product creation failed.");
+                }
+                Console.WriteLine(createdProductDto);
+                return CreatedAtAction(nameof(GetProductById), new { id = createdProductDto.Id }, createdProductDto);
             }
-
-            // Call the service to create the product and get the generated Id
-            var productId = await _productService.CreateProductAsync(productDto, cancellationToken);
-
-            // Return the created product's Id
-            return CreatedAtAction(nameof(GetProductById), new { id = productId }, productDto);
+            catch (Exception ex)
+            {
+                // Log the full exception details
+                Console.WriteLine("Error: " + ex.Message);
+                Console.WriteLine("Stack Trace: " + ex.StackTrace);
+                return StatusCode(500, $"Internal server error {ex.Message} , {ex.StackTrace}");
+            }
         }
+
 
         // PUT /api/Product/{id}
         [HttpPut("{id:guid}")]
