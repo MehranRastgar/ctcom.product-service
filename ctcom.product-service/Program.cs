@@ -12,6 +12,8 @@ using ctcom.ProductService.DTOs.Validation;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
+
 
 // Configure the database (replace with your connection string)
 var connectionString = builder.Configuration.GetConnectionString("ProductDatabase");
@@ -69,6 +71,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
