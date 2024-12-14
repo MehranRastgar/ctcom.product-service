@@ -78,7 +78,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: 2054
           script: |
-            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker pull localhost:2525/ct-dashboard:${{ github.sha }}
-            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker stop ct-dashboard || true
-            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker rm ct-dashboard || true
-            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker run -d --name ct-dashboard -p 7128:7128 localhost:2525/ctcom.product-service:${{ github.sha }}
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker pull localhost:2525/ctcom.product-service:${{ github.sha }}
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker stop ctcom.product-service || true
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker rm ctcom.product-service || true
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker run -d --name ctcom.product-service -p 7128:7128 localhost:2525/ctcom.product-service:${{ github.sha }}
