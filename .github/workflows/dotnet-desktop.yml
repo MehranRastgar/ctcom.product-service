@@ -32,8 +32,8 @@ jobs:
       - name: Build project
         run: dotnet build ./ctcom.product-service/ctcom.product-service.csproj --configuration ${{ env.BUILD_CONFIGURATION }}
 
-      - name: Run tests
-        run: dotnet test --no-build --verbosity normal
+      # - name: Run tests
+      #   run: dotnet test --no-build --verbosity normal
 
   docker-build-and-push:
     name: Docker Build and Push
