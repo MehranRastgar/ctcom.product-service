@@ -27,10 +27,10 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore ./microservices/ctcom.product-service/ctcom.product-service/ctcom.product-service.csproj
+        run: dotnet restore ./ctcom.product-service/ctcom.product-service.csproj
 
       - name: Build project
-        run: dotnet build ./microservices/ctcom.product-service/ctcom.product-service/ctcom.product-service.csproj --configuration ${{ env.BUILD_CONFIGURATION }}
+        run: dotnet build ./ctcom.product-service/ctcom.product-service.csproj --configuration ${{ env.BUILD_CONFIGURATION }}
 
       - name: Run tests
         run: dotnet test --no-build --verbosity normal
