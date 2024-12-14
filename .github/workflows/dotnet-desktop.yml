@@ -58,7 +58,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./Dockerfile
+          file: ./ctcom.product-service/Dockerfile
           push: true
           tags: docker.levino.ir/ctcom.product-service:${{ github.sha }}
           build-args: |
