@@ -14,6 +14,10 @@ namespace ctcom.ProductService.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+
+
+
+            base.OnModelCreating(modelBuilder);
             // Primary key for Product
             modelBuilder.Entity<Product>().HasKey(p => p.Id);
 
@@ -28,6 +32,13 @@ namespace ctcom.ProductService.Data
                 .HasOne(v => v.Product)
                 .WithMany(p => p.Variants)
                 .HasForeignKey(v => v.ProductId);
+
+
+            modelBuilder.Entity<ProductVariant>(entity =>
+                      {
+                          entity.Property(p => p.Price)
+                                  .HasPrecision(18, 2); // Precision 18, Scale 2 (e.g., 999,999,999,999.99)
+                      });
 
             // Define relationship between Product and Options (explicit foreign key + cascade delete)
             modelBuilder.Entity<Product>()

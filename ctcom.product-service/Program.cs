@@ -9,6 +9,7 @@ using AutoMapper;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using ctcom.ProductService.DTOs.Validation;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,7 +46,7 @@ builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("rabbitmq://localhost", h =>
+        cfg.Host("rabbitmq://rabbitmq", h =>
         {
             h.Username("guest");
             h.Password("guest");
@@ -56,7 +57,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", builder =>
     {
-        builder.WithOrigins(["http://localhost:3000"]) // origins
+        builder.WithOrigins(["http://localhost:3026", "http://localhost:3000"]) // origins
              .AllowAnyMethod()
              .AllowAnyHeader()
              .AllowCredentials();
@@ -71,6 +72,24 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+
+
+string projectPath = Directory.GetCurrentDirectory();
+Console.WriteLine($"Project Path: {projectPath}");
+
+// app.UseStaticFiles();
+
+// To serve files from a custom "uploads" folder
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(projectPath, "wwwroot", "uploads")),
+    RequestPath = "/uploads"
+});
+
+
+
 
 app.MapDefaultEndpoints();
 // Configure the HTTP request pipeline.

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace ctcom.ProductService.Models
 {
@@ -25,7 +26,9 @@ namespace ctcom.ProductService.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Title { get; set; } = string.Empty;            // Variant title
-        public decimal Price { get; set; }                           // Price for this variant
+
+        [Precision(18, 2)]
+        public decimal Price { get; set; }
         public int StockQuantity { get; set; }                       // Stock available for this variant
         public Guid ProductId { get; set; }                          // Reference to the parent product
 

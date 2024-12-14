@@ -77,6 +77,10 @@ namespace ctcom.ProductService.Mapping
             CreateMap<ProductImage, ProductImageDto>().ReverseMap();
             CreateMap<ProductImage, CreateProductImageDto>().ReverseMap();
             CreateMap<ProductImage, UpdateProductImageDto>().ReverseMap();
+
+            CreateMap<ProductImage, GetProductImageDto>();
+
+
         }
     }
 }

@@ -53,20 +53,33 @@ namespace ctcom.ProductService.Repositories
 
         public async Task<Guid> AddAsync(Product product, CancellationToken cancellationToken)
         {
-            // Check if product is null
-            if (product == null)
+            try
             {
-                Console.WriteLine("Error: Product is null in repository");
-                throw new ArgumentNullException(nameof(product), "Product is null");
+                // Check if product is null
+                if (product == null)
+                {
+                    Console.WriteLine("Error: Product is null in repository");
+                    throw new ArgumentNullException(nameof(product), "Product is null");
+                }
+
+                await _dbContext.Products.AddAsync(product, cancellationToken);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+                // Log the ID after saving
+                Console.WriteLine($"Product successfully saved with ID: {product.Id}");
+
+                return product.Id;
+            }
+            catch (DbUpdateException ex)
+            {
+                // Log the error (consider using a logging framework)
+                Console.WriteLine($"An error occurred: {ex.InnerException?.Message}");
+                return product.Id;
+
+                // throw; // or handle accordingly
             }
 
-            await _dbContext.Products.AddAsync(product, cancellationToken);
-            await _dbContext.SaveChangesAsync(cancellationToken);
 
-            // Log the ID after saving
-            Console.WriteLine($"Product successfully saved with ID: {product.Id}");
-
-            return product.Id;
         }
 
         public async Task UpdateAsync(Product product, CancellationToken cancellationToken)
