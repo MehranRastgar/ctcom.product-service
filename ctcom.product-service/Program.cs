@@ -15,6 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configure the database (replace with your connection string)
 var connectionString = builder.Configuration.GetConnectionString("ProductDatabase");
+var rabbitConnection = builder.Configuration.GetConnectionString("Rabbitmq");
+
+
+
 builder.Services.AddDbContext<ProductDbContext>(options =>
     options.UseSqlServer(connectionString, sqlOptions =>
     {
@@ -43,7 +47,7 @@ builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("rabbitmq://localhost", h =>
+        cfg.Host($"rabbitmq://{rabbitConnection}", h =>
         {
             h.Username("guest");
             h.Password("guest");
