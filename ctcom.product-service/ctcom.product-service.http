@@ -1,6 +1,6 @@
 @ctcom.product_service_HostAddress = http://localhost:5221
 
-GET {{ctcom.product_service_HostAddress}}/weatherforecast/
+# GET {{ctcom.product_service_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###

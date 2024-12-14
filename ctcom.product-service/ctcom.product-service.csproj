@@ -31,8 +31,8 @@
     <PackageReference Include="xunit" Version="2.9.1" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!-- <ItemGroup>
     <ProjectReference Include="..\..\..\ctcom-microservice.ServiceDefaults\ctcom-microservice.ServiceDefaults.csproj" />
-  </ItemGroup>
+  </ItemGroup> -->
 
 </Project>

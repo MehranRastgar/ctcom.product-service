@@ -13,9 +13,6 @@ using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
-
-
 // Configure the database (replace with your connection string)
 var connectionString = builder.Configuration.GetConnectionString("ProductDatabase");
 builder.Services.AddDbContext<ProductDbContext>(options =>
@@ -46,7 +43,7 @@ builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("rabbitmq://rabbitmq", h =>
+        cfg.Host("rabbitmq://localhost", h =>
         {
             h.Username("guest");
             h.Password("guest");
@@ -91,7 +88,7 @@ app.UseStaticFiles(new StaticFileOptions
 
 
 
-app.MapDefaultEndpoints();
+// app.MapDefaultEndpoints();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

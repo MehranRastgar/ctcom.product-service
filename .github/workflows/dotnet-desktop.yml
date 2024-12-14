@@ -1,0 +1,61 @@
+name: Build and Deploy .NET Microservice
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  DOTNET_VERSION: "8.0"
+  BUILD_CONFIGURATION: "Release"
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore ./microservices/ctcom.product-service/ctcom.product-service/ctcom.product-service.csproj
+
+      - name: Build project
+        run: dotnet build ./microservices/ctcom.product-service/ctcom.product-service/ctcom.product-service.csproj --configuration ${{ env.BUILD_CONFIGURATION }}
+
+      - name: Run tests
+        run: dotnet test --no-build --verbosity normal
+
+  docker-build-and-push:
+    name: Docker Build and Push
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: |
+          docker build \
+          --build-arg BUILD_CONFIGURATION=${{ env.BUILD_CONFIGURATION }} \
+          -t ${{ secrets.DOCKER_USERNAME }}/ctcom-product-service:latest .
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/ctcom-product-service:latest
