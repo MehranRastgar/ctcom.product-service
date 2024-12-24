@@ -81,4 +81,4 @@ jobs:
             echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker pull localhost:2525/ctcom.product-service:${{ github.sha }}
             echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker stop ctcom.product-service || true
             echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker rm ctcom.product-service || true
-            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker run -d --name ctcom.product-service -p 7128:7128 localhost:2525/ctcom.product-service:${{ github.sha }}
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker run -d --name ctcom.product-service -p 7128:7128 -v uploads_volume:/app/wwwroot/uploads localhost:2525/ctcom.product-service:${{ github.sha }}
