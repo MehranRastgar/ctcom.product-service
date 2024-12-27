@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: ctcom.product-service:v1
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: uploads-volume
+              mountPath: /app/wwwroot/uploads
+      volumes:
+        - name: uploads-volume
+          hostPath:
+            path: /data/uploads # Path on the host machine
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+spec:
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: product-service

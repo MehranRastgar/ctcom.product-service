@@ -58,7 +58,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./ctcom.product-service/Dockerfile
+          file: ./Dockerfile
           push: true
           tags: docker.levino.ir/ctcom.product-service:${{ github.sha }}
           build-args: |
@@ -82,3 +82,9 @@ jobs:
             echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker stop ctcom.product-service || true
             echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker rm ctcom.product-service || true
             echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker run -d --name ctcom.product-service -p 7128:7128 -v uploads_volume:/app/wwwroot/uploads localhost:2525/ctcom.product-service:${{ github.sha }}
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker network create --driver bridge gateway
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker network connect gateway ctcom.product-service
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker network create --driver bridge redis
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker network connect redis ctcom.product-service
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker network create --driver bridge sql-server
+            echo ${{ secrets.SERVER_PASSWORD }} | sudo -S docker network connect sql-server ctcom.product-service
